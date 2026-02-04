@@ -6,211 +6,193 @@
 <title>Be My Valentine ❤️</title>
 
 <style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
-    height: 100vh;
-    overflow: hidden;
-  }
-
-  .card {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    width: 380px;
-    height: 280px;
-    padding: 30px;
-    border-radius: 22px;
-    text-align: center;
-    z-index: 5;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  }
-
-  h1 {
-    color: #ff4d6d;
-    margin: 10px 0;
-  }
-
-  button {
-    padding: 12px 25px;
-    font-size: 18px;
-    border-radius: 25px;
-    border: none;
-    cursor: pointer;
-    margin: 10px;
-  }
-
-  #yesBtn {
-    background: #ff4d6d;
-    color: white;
-  }
-
-  #noBtn {
-    background: #ccc;
-    position: absolute;
-  }
-
-  canvas {
-    position: fixed;
-    inset: 0;
-    z-index: 1;
-  }
-
-  /* THANK YOU SCREEN */
-  #celebrate {
-    display: none;
-    position: absolute;
-    inset: 0;
-    z-index: 4;
-    text-align: center;
-    color: white;
-    background-color: #000;
-    background-image: url("EOSR2784.JPG");
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: contain;
-  }
-
-  /* DARK OVERLAY */
-  #celebrate::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.55);
-    z-index: -1;
-  }
-
-  #celebrate h1 {
-    margin-top: 60px;
-    padding: 20px;
-    font-size: 32px;
-    animation: pulse 1s infinite alternate;
-  }
-
-  @keyframes pulse {
-    from { transform: scale(1); }
-    to { transform: scale(1.08); }
-  }
-
-  /* MOBILE */
-  @media (max-width: 600px) {
-    .card {
-      width: 320px;
-      height: 260px;
+    * {
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
     }
 
-    #celebrate h1 {
-      font-size: 24px;
-      margin-top: 40px;
+    body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+        overflow: hidden;
     }
-  }
+
+    .container {
+        background: white;
+        width: 90%;
+        max-width: 400px;
+        height: 330px;
+        border-radius: 20px;
+        padding: 20px;
+        text-align: center;
+        position: relative;
+    }
+
+    h1 {
+        color: #e60073;
+    }
+
+    .btn {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 20px;
+        font-size: 16px;
+        cursor: pointer;
+        margin: 10px;
+    }
+
+    #yesBtn {
+        background-color: #ff4d88;
+        color: white;
+    }
+
+    #noBtn {
+        background-color: #ddd;
+        position: absolute;
+    }
+
+    /* RESULT SCREEN */
+    #result {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        overflow: hidden;
+    }
+
+    /* BLURRED BACKGROUND IMAGE */
+    #result::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url("EOSR2784.JPG");
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        filter: blur(6px); /* 👈 blur strength */
+        transform: scale(1.1);
+        z-index: -1;
+    }
+
+    /* TEXT BOX */
+    #result h1 {
+        background: rgba(0, 0, 0, 0.55);
+        padding: 20px;
+        border-radius: 16px;
+        border: 2px solid black; /* 👈 black border */
+        font-size: 26px;
+        color: white;
+        text-shadow: 2px 2px 5px black;
+        max-width: 90%;
+    }
+
+    canvas {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 20;
+    }
 </style>
 </head>
 
 <body>
 
-<!-- MUSIC -->
+<div class="container" id="questionBox">
+    <h1>Pavii ❤️</h1>
+    <h2>Will you be my Valentine?</h2>
+
+    <button class="btn" id="yesBtn">Yes ❤️</button>
+    <button class="btn" id="noBtn">No 🙃</button>
+</div>
+
+<div id="result">
+    <h1>
+        Thank you Pavii ❤️<br>
+        For choosing me as your Valentine 💕
+    </h1>
+</div>
+
+<canvas id="fireworks"></canvas>
+
 <audio id="music" loop>
-  <source src="music.mp3" type="audio/mpeg">
+    <source src="music.mp3" type="audio/mpeg">
 </audio>
 
-<canvas id="canvas"></canvas>
-
-<!-- QUESTION CARD -->
-<div class="card" id="question">
-  <h1>Pavii 💖</h1>
-  <h1>Will you be my Valentine?</h1>
-  <button id="yesBtn">Yes ❤️</button>
-  <button id="noBtn">No 😜</button>
-</div>
-
-<!-- CELEBRATION -->
-<div id="celebrate">
-  <h1>🎆 Thank you Pavii for choosing me as your Valentine 💕 🎆</h1>
-</div>
-
 <script>
-/* ELEMENTS */
-const card = document.getElementById("question");
-const noBtn = document.getElementById("noBtn");
-const yesBtn = document.getElementById("yesBtn");
-const celebrate = document.getElementById("celebrate");
-const music = document.getElementById("music");
+    const noBtn = document.getElementById("noBtn");
+    const container = document.querySelector(".container");
+    const yesBtn = document.getElementById("yesBtn");
+    const result = document.getElementById("result");
+    const music = document.getElementById("music");
 
-/* MOVE NO BUTTON INSIDE WHITE CARD */
-function moveNo() {
-  const rect = card.getBoundingClientRect();
-  const btnW = noBtn.offsetWidth;
-  const btnH = noBtn.offsetHeight;
-  const padding = 20;
+    function moveNoButton() {
+        const rect = container.getBoundingClientRect();
+        const maxX = rect.width - noBtn.offsetWidth - 20;
+        const maxY = rect.height - noBtn.offsetHeight - 20;
 
-  const maxX = rect.width - btnW - padding;
-  const maxY = rect.height - btnH - padding;
-
-  noBtn.style.left = (Math.random() * maxX + padding) + "px";
-  noBtn.style.top  = (Math.random() * maxY + padding) + "px";
-}
-
-noBtn.addEventListener("mouseover", moveNo);
-noBtn.addEventListener("click", moveNo);
-noBtn.addEventListener("touchstart", e => {
-  e.preventDefault();
-  moveNo();
-});
-
-/* YES BUTTON */
-yesBtn.addEventListener("click", () => {
-  music.play();
-  card.style.display = "none";
-  celebrate.style.display = "block";
-  startFireworks();
-});
-
-/* FIREWORKS */
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-canvas.width = innerWidth;
-canvas.height = innerHeight;
-
-window.addEventListener("resize", () => {
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
-});
-
-let particles = [];
-
-function startFireworks() {
-  setInterval(() => {
-    const x = Math.random() * canvas.width;
-    const y = Math.random() * canvas.height / 2;
-    for (let i = 0; i < 60; i++) {
-      particles.push({
-        x, y,
-        vx: (Math.random() - 0.5) * 6,
-        vy: (Math.random() - 0.5) * 6,
-        life: 70,
-        color: `hsl(${Math.random()*360},100%,60%)`
-      });
+        noBtn.style.left = Math.random() * maxX + "px";
+        noBtn.style.top = Math.random() * maxY + "px";
     }
-  }, 600);
-}
 
-function animate() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  particles.forEach((p,i) => {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.life--;
-    ctx.fillStyle = p.color;
-    ctx.fillRect(p.x,p.y,3,3);
-    if(p.life<=0) particles.splice(i,1);
-  });
-  requestAnimationFrame(animate);
-}
-animate();
+    noBtn.addEventListener("click", moveNoButton);
+    noBtn.addEventListener("mouseover", moveNoButton);
+    noBtn.addEventListener("touchstart", moveNoButton);
+
+    yesBtn.addEventListener("click", () => {
+        document.getElementById("questionBox").style.display = "none";
+        result.style.display = "flex";
+
+        music.volume = 0.25; // mild volume
+        music.play();
+
+        startFireworks();
+        confettiBlast();
+    });
+
+    /* FIREWORKS */
+    const canvas = document.getElementById("fireworks");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    function startFireworks() {
+        setInterval(() => {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height / 2;
+            for (let i = 0; i < 50; i++) {
+                ctx.beginPath();
+                ctx.arc(x, y, Math.random() * 2, 0, Math.PI * 2);
+                ctx.fillStyle = `hsl(${Math.random()*360},100%,50%)`;
+                ctx.fill();
+            }
+        }, 400);
+    }
+
+    /* CONFETTI */
+    function confettiBlast() {
+        for (let i = 0; i < 200; i++) {
+            const div = document.createElement("div");
+            div.style.position = "fixed";
+            div.style.width = "6px";
+            div.style.height = "6px";
+            div.style.background = `hsl(${Math.random()*360},100%,50%)`;
+            div.style.left = Math.random()*100 + "vw";
+            div.style.top = "-10px";
+            document.body.appendChild(div);
+
+            div.animate(
+                [{ transform: "translateY(0)" }, { transform: "translateY(100vh)" }],
+                { duration: 2000 + Math.random()*2000, easing: "linear" }
+            ).onfinish = () => div.remove();
+        }
+    }
 </script>
 
 </body>
