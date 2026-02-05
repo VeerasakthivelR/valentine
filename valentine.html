@@ -21,7 +21,6 @@ body {
     overflow: hidden;
 }
 
-/* Question card */
 .container {
     position: relative;
     width: 90%;
@@ -69,7 +68,6 @@ button {
     top: 20px;
 }
 
-/* Result screen */
 #result {
     display: none;
     position: fixed;
@@ -83,7 +81,7 @@ button {
     display: flex;
 }
 
-/* 🔥 FULL-SCREEN IMAGE FOR iPHONE 15 PLUS */
+/* FULL SCREEN IMAGE – iPhone 15 Plus */
 #result::before {
     content: "";
     position: absolute;
@@ -91,13 +89,12 @@ button {
     background-image: url("EOSR2784.JPG");
     background-repeat: no-repeat;
     background-position: center top;
-    background-size: cover;     /* FULL SCREEN COVER */
+    background-size: cover;
     filter: blur(6px);
     transform: scale(1.05);
     z-index: -1;
 }
 
-/* Desktop safety */
 @media (min-width: 768px) {
     #result::before {
         background-size: contain;
@@ -119,7 +116,6 @@ button {
     to { opacity: 1; transform: scale(1); }
 }
 
-/* Hearts */
 .heart {
     position: absolute;
     font-size: 20px;
@@ -132,7 +128,6 @@ button {
     to { transform: translateY(-10vh); }
 }
 
-/* Confetti */
 .confetti {
     position: fixed;
     width: 8px;
@@ -188,7 +183,23 @@ const result = document.getElementById("result");
 const music = document.getElementById("music");
 const funnySound = document.getElementById("funnySound");
 
-music.volume = 0.25;
+/* 🎵 FADE SETTINGS */
+const TARGET_VOLUME = 0.25;
+const FADE_DURATION = 2000; // ms
+
+music.volume = 0;
+
+function fadeInMusic() {
+    music.play();
+    let step = TARGET_VOLUME / (FADE_DURATION / 100);
+    let fade = setInterval(() => {
+        if (music.volume < TARGET_VOLUME) {
+            music.volume = Math.min(music.volume + step, TARGET_VOLUME);
+        } else {
+            clearInterval(fade);
+        }
+    }, 100);
+}
 
 function moveNoButton() {
     const rect = container.getBoundingClientRect();
@@ -208,7 +219,7 @@ noBtn.addEventListener("touchstart", moveNoButton);
 yesBtn.addEventListener("click", () => {
     document.getElementById("questionBox").style.display = "none";
     result.classList.add("active");
-    music.play();
+    fadeInMusic();
     startHearts();
     startConfetti();
     startFireworks();
