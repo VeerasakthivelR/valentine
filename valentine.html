@@ -40,7 +40,20 @@ h1 {
     color: #e60073;
 }
 
-/* 💖 Romantic question text */
+#greeting {
+    min-height: 40px;
+}
+
+#greeting .cursor,
+#typingText .cursor {
+    display: inline-block;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
 #typingText {
     margin-top: 15px;
     font-size: 20px;
@@ -48,15 +61,6 @@ h1 {
     color: #4a0033;
     font-family: 'Playfair Display', serif;
     min-height: 60px;
-}
-
-.cursor {
-    display: inline-block;
-    animation: blink 1s infinite;
-}
-
-@keyframes blink {
-    50% { opacity: 0; }
 }
 
 .buttons {
@@ -72,6 +76,8 @@ button {
     border-radius: 30px;
     cursor: pointer;
     position: absolute;
+    opacity: 0;             /* hidden initially */
+    transition: opacity 0.5s ease; /* smooth fade-in */
 }
 
 #yesBtn {
@@ -171,8 +177,7 @@ canvas {
 <body>
 
 <div class="container" id="questionBox">
-    <h1>Hey Pavii 💕</h1>
-
+    <h1 id="greeting">Hey Pavii 💕</h1>
     <div id="typingText"></div>
 
     <div class="buttons" id="btnArea">
@@ -199,23 +204,11 @@ canvas {
 </audio>
 
 <script>
-const typingText = document.getElementById("typingText");
+const greetingText = "Hey Pavii 💕";
+const mainText = "Will you be my Valentine, today, tomorrow, and forever… 💖?";
 
-/* 💘 FINAL QUESTION TEXT */
-const text = "Will you be my Valentine, today, tomorrow, and forever… 💖?";
-let index = 0;
-
-function typeEffect() {
-    if (index < text.length) {
-        typingText.innerHTML =
-            text.substring(0, index + 1) + '<span class="cursor">|</span>';
-        index++;
-        setTimeout(typeEffect, 70);
-    } else {
-        typingText.innerHTML = text;
-    }
-}
-typeEffect();
+const greetingEl = document.getElementById("greeting");
+const typingTextEl = document.getElementById("typingText");
 
 const noBtn = document.getElementById("noBtn");
 const yesBtn = document.getElementById("yesBtn");
@@ -226,6 +219,46 @@ const funnySound = document.getElementById("funnySound");
 
 music.volume = 0.25;
 
+/* HIDE BUTTONS INITIALLY */
+yesBtn.style.opacity = 0;
+noBtn.style.opacity = 0;
+
+let greetingIndex = 0;
+let mainIndex = 0;
+
+/* Type greeting first */
+function typeGreeting() {
+    if (greetingIndex < greetingText.length) {
+        greetingEl.innerHTML = greetingText.substring(0, greetingIndex + 1) + '<span class="cursor">|</span>';
+        greetingIndex++;
+        setTimeout(typeGreeting, 100); // slower typing for greeting
+    } else {
+        greetingEl.innerHTML = greetingText; // remove cursor
+        typeMainText(); // start main question typing
+    }
+}
+
+/* Type main question text */
+function typeMainText() {
+    if (mainIndex < mainText.length) {
+        typingTextEl.innerHTML = mainText.substring(0, mainIndex + 1) + '<span class="cursor">|</span>';
+        mainIndex++;
+        setTimeout(typeMainText, 70);
+    } else {
+        typingTextEl.innerHTML = mainText; // remove cursor
+        showButtonsSequentially();       // show buttons after main text
+    }
+}
+
+/* Show buttons one by one */
+function showButtonsSequentially() {
+    yesBtn.style.opacity = 1;           // Yes first
+    setTimeout(() => {
+        noBtn.style.opacity = 1;        // No after 0.5s
+    }, 500);
+}
+
+/* No button moves when clicked */
 function moveNoButton() {
     const rect = container.getBoundingClientRect();
     const maxX = rect.width - noBtn.offsetWidth - 20;
@@ -241,6 +274,7 @@ function moveNoButton() {
 noBtn.addEventListener("click", moveNoButton);
 noBtn.addEventListener("touchstart", moveNoButton);
 
+/* Yes button celebration */
 yesBtn.addEventListener("click", () => {
     document.getElementById("questionBox").style.display = "none";
     result.classList.add("active");
@@ -250,6 +284,7 @@ yesBtn.addEventListener("click", () => {
     startFireworks();
 });
 
+/* Hearts */
 function startHearts() {
     setInterval(() => {
         const heart = document.createElement("div");
@@ -261,6 +296,7 @@ function startHearts() {
     }, 300);
 }
 
+/* Confetti */
 function startConfetti() {
     for (let i = 0; i < 80; i++) {
         const c = document.createElement("div");
@@ -272,6 +308,7 @@ function startConfetti() {
     }
 }
 
+/* Fireworks */
 function startFireworks() {
     const canvas = document.getElementById("fireworks");
     const ctx = canvas.getContext("2d");
@@ -288,6 +325,9 @@ function startFireworks() {
         }
     }, 500);
 }
+
+/* Start the greeting typing */
+typeGreeting();
 </script>
 
 </body>
