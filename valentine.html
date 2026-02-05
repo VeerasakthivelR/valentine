@@ -23,7 +23,6 @@ body {
     overflow: hidden;
 }
 
-/* Card */
 .container {
     width: 90%;
     max-width: 400px;
@@ -33,14 +32,19 @@ body {
     text-align: center;
     padding: 25px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    z-index: 5;
+    z-index: 2;
 }
 
-h1 { color: #e60073; }
+h1 {
+    color: #e60073;
+}
 
-#greeting { min-height: 40px; }
+#greeting {
+    min-height: 40px;
+}
 
 .cursor {
+    display: inline-block;
     animation: blink 1s infinite;
 }
 
@@ -57,7 +61,7 @@ h1 { color: #e60073; }
     min-height: 60px;
 }
 
-/* Buttons */
+/* ✅ FIXED BUTTON LAYOUT */
 .buttons {
     margin-top: 40px;
     display: flex;
@@ -65,6 +69,7 @@ h1 { color: #e60073; }
     gap: 20px;
 }
 
+/* buttons no longer absolute */
 button {
     padding: 12px 25px;
     font-size: 18px;
@@ -90,79 +95,54 @@ button {
     display: none;
     position: fixed;
     inset: 0;
+    align-items: center;
+    justify-content: center;
     z-index: 10;
 }
 
 #result.active {
-    display: block;
+    display: flex;
 }
 
-/* 🌸 BACKGROUND IMAGE LAYER */
-.result-bg {
+#result::before {
+    content: "";
     position: absolute;
     inset: 0;
-    background: black;
-    overflow: hidden;
+    background-image: url("EOSR2784.JPG");
+    background-repeat: no-repeat;
+    background-position: center top;
+    background-size: cover;
+    filter: blur(6px);
+    transform: scale(1.05);
+    z-index: -1;
 }
 
-/* 🎥 IMAGE WITH SINGLE-POINT REVEAL */
-.result-bg img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;          /* NEVER oversized */
-    object-position: center top;
-    transform-origin: center;
-    animation:
-        revealZoom 6s ease-out forwards,
-        idleFloat 20s ease-in-out infinite 6s;
-}
-
-/* 🎬 REVEAL FROM SINGLE POINT */
-@keyframes revealZoom {
-    0% {
-        transform: scale(0.88);
-        opacity: 0;
-        filter: blur(18px) brightness(0.6);
-    }
-    60% {
-        opacity: 1;
-        filter: blur(8px) brightness(0.8);
-    }
-    100% {
-        transform: scale(1);
-        filter: blur(6px) brightness(0.85);
+@media (min-width: 768px) {
+    #result::before {
+        background-size: contain;
+        background-position: center;
     }
 }
 
-/* 🌊 Gentle idle movement after reveal */
-@keyframes idleFloat {
-    0%   { transform: translateY(0); }
-    50%  { transform: translateY(-12px); }
-    100% { transform: translateY(0); }
-}
-
-/* Message box */
 .result-box {
-    position: relative;
-    z-index: 6;
-    top: 50%;
-    transform: translateY(-50%);
-    margin: auto;
-    width: 85%;
-    max-width: 360px;
-    background: rgba(255,255,255,0.9);
+    background: rgba(255,255,255,0.85);
     padding: 25px;
     border-radius: 20px;
     border: 3px solid black;
     text-align: center;
+    animation: fadeIn 1.5s ease;
 }
 
-/* Hearts */
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
 .heart {
     position: absolute;
     font-size: 20px;
     animation: floatUp 4s linear infinite;
-    z-index: 7;
+    opacity: 0.7;
 }
 
 @keyframes floatUp {
@@ -170,18 +150,22 @@ button {
     to { transform: translateY(-10vh); }
 }
 
-/* Confetti */
 .confetti {
     position: fixed;
     width: 8px;
     height: 8px;
     animation: fall 3s linear infinite;
-    z-index: 7;
 }
 
 @keyframes fall {
     from { transform: translateY(-10vh) rotate(0); }
     to { transform: translateY(110vh) rotate(360deg); }
+}
+
+canvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
 }
 </style>
 </head>
@@ -192,23 +176,20 @@ button {
     <h1 id="greeting">Hey Pavii 💕</h1>
     <div id="typingText"></div>
 
-    <div class="buttons">
+    <div class="buttons" id="btnArea">
         <button id="noBtn">No 🙃</button>
         <button id="yesBtn">Yes ❤️</button>
     </div>
 </div>
 
-<!-- RESULT -->
 <div id="result">
-    <div class="result-bg">
-        <img src="EOSR2784.JPG" alt="Love background">
-    </div>
-
     <div class="result-box">
         <h1>Thank you for choosing me as your Valentine 💖</h1>
         <h2>You’ve unlocked unlimited love 💕</h2>
     </div>
 </div>
+
+<canvas id="fireworks"></canvas>
 
 <audio id="music" loop>
     <source src="music.mp3" type="audio/mpeg">
@@ -224,6 +205,7 @@ const mainText = "Will you be my Valentine for today, tomorrow, and forever… �
 
 const greetingEl = document.getElementById("greeting");
 const typingTextEl = document.getElementById("typingText");
+
 const noBtn = document.getElementById("noBtn");
 const yesBtn = document.getElementById("yesBtn");
 const result = document.getElementById("result");
@@ -232,24 +214,31 @@ const funnySound = document.getElementById("funnySound");
 
 music.volume = 0.25;
 
-let g = 0, m = 0;
+let greetingIndex = 0;
+let mainIndex = 0;
 
+/* Typing greeting */
 function typeGreeting() {
-    if (g < greetingText.length) {
+    if (greetingIndex < greetingText.length) {
         greetingEl.innerHTML =
-            greetingText.slice(0, ++g) + '<span class="cursor">|</span>';
+            greetingText.substring(0, greetingIndex + 1) +
+            '<span class="cursor">|</span>';
+        greetingIndex++;
         setTimeout(typeGreeting, 100);
     } else {
         greetingEl.innerHTML = greetingText;
-        typeMain();
+        typeMainText();
     }
 }
 
-function typeMain() {
-    if (m < mainText.length) {
+/* Typing main text */
+function typeMainText() {
+    if (mainIndex < mainText.length) {
         typingTextEl.innerHTML =
-            mainText.slice(0, ++m) + '<span class="cursor">|</span>';
-        setTimeout(typeMain, 70);
+            mainText.substring(0, mainIndex + 1) +
+            '<span class="cursor">|</span>';
+        mainIndex++;
+        setTimeout(typeMainText, 70);
     } else {
         typingTextEl.innerHTML = mainText;
         yesBtn.style.opacity = 1;
@@ -257,36 +246,41 @@ function typeMain() {
     }
 }
 
-function moveNo() {
+/* No button move (small dodge effect) */
+function moveNoButton() {
     noBtn.style.transform =
         `translate(${Math.random()*80 - 40}px, ${Math.random()*80 - 40}px)`;
     funnySound.currentTime = 0;
     funnySound.play();
 }
 
-noBtn.addEventListener("click", moveNo);
-noBtn.addEventListener("touchstart", moveNo);
+noBtn.addEventListener("click", moveNoButton);
+noBtn.addEventListener("touchstart", moveNoButton);
 
+/* Yes button */
 yesBtn.addEventListener("click", () => {
     document.getElementById("questionBox").style.display = "none";
     result.classList.add("active");
     music.play();
-    hearts();
-    confetti();
+    startHearts();
+    startConfetti();
+    startFireworks();
 });
 
-function hearts() {
+/* Hearts */
+function startHearts() {
     setInterval(() => {
-        const h = document.createElement("div");
-        h.className = "heart";
-        h.innerHTML = "❤️";
-        h.style.left = Math.random() * 100 + "vw";
-        document.body.appendChild(h);
-        setTimeout(() => h.remove(), 4000);
+        const heart = document.createElement("div");
+        heart.className = "heart";
+        heart.innerHTML = "❤️";
+        heart.style.left = Math.random() * 100 + "vw";
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 4000);
     }, 300);
 }
 
-function confetti() {
+/* Confetti */
+function startConfetti() {
     for (let i = 0; i < 80; i++) {
         const c = document.createElement("div");
         c.className = "confetti";
@@ -296,6 +290,25 @@ function confetti() {
     }
 }
 
+/* Fireworks */
+function startFireworks() {
+    const canvas = document.getElementById("fireworks");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    setInterval(() => {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for (let i = 0; i < 60; i++) {
+            ctx.beginPath();
+            ctx.arc(Math.random()*canvas.width, Math.random()*canvas.height/2, 2, 0, Math.PI*2);
+            ctx.fillStyle = `hsl(${Math.random()*360},100%,50%)`;
+            ctx.fill();
+        }
+    }, 500);
+}
+
+/* Start typing */
 typeGreeting();
 </script>
 
