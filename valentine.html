@@ -23,7 +23,7 @@ body {
     overflow: hidden;
 }
 
-/* Question Card */
+/* Card */
 .container {
     width: 90%;
     max-width: 400px;
@@ -40,7 +40,9 @@ h1 { color: #e60073; }
 
 #greeting { min-height: 40px; }
 
-.cursor { animation: blink 1s infinite; }
+.cursor {
+    animation: blink 1s infinite;
+}
 
 @keyframes blink {
     50% { opacity: 0; }
@@ -73,8 +75,15 @@ button {
     transition: opacity 0.5s ease;
 }
 
-#yesBtn { background: #ff4d88; color: white; }
-#noBtn { background: #ddd; color: black; }
+#yesBtn {
+    background: #ff4d88;
+    color: white;
+}
+
+#noBtn {
+    background: #ddd;
+    color: black;
+}
 
 /* RESULT SCREEN */
 #result {
@@ -88,74 +97,64 @@ button {
     display: block;
 }
 
-/* Background Layer */
+/* 🌸 BACKGROUND IMAGE LAYER */
 .result-bg {
     position: absolute;
     inset: 0;
+    background: black;
     overflow: hidden;
 }
 
-/* 🔥 FULL SCREEN IMAGE (NO GAP) */
+/* 🎥 IMAGE WITH SINGLE-POINT REVEAL */
 .result-bg img {
     width: 100%;
     height: 100%;
-    object-fit: cover;              /* ✅ NO GAP */
-    object-position: center;
+    object-fit: contain;          /* NEVER oversized */
+    object-position: center top;
     transform-origin: center;
-    opacity: 0;
     animation:
-        bgReveal 6s ease-out forwards,
-        bgFloat 20s ease-in-out infinite 6s;
-    animation-delay: 2.8s;           /* After Thank You */
+        revealZoom 6s ease-out forwards,
+        idleFloat 20s ease-in-out infinite 6s;
 }
 
-/* Background reveal */
-@keyframes bgReveal {
+/* 🎬 REVEAL FROM SINGLE POINT */
+@keyframes revealZoom {
     0% {
-        transform: scale(1.15);
+        transform: scale(0.88);
         opacity: 0;
+        filter: blur(18px) brightness(0.6);
+    }
+    60% {
+        opacity: 1;
+        filter: blur(8px) brightness(0.8);
     }
     100% {
         transform: scale(1);
-        opacity: 1;
+        filter: blur(6px) brightness(0.85);
     }
 }
 
-/* Gentle motion */
-@keyframes bgFloat {
+/* 🌊 Gentle idle movement after reveal */
+@keyframes idleFloat {
     0%   { transform: translateY(0); }
     50%  { transform: translateY(-12px); }
     100% { transform: translateY(0); }
 }
 
-/* THANK YOU BOX */
+/* Message box */
 .result-box {
     position: relative;
     z-index: 6;
     top: 50%;
-    transform: translateY(-50%) scale(0.85);
+    transform: translateY(-50%);
     margin: auto;
     width: 85%;
     max-width: 360px;
-    background: rgba(255,255,255,0.95);
+    background: rgba(255,255,255,0.9);
     padding: 25px;
     border-radius: 20px;
     border: 3px solid black;
     text-align: center;
-    opacity: 0;
-    animation: thankYouIn 1.6s ease-out forwards;
-}
-
-/* Thank you animation */
-@keyframes thankYouIn {
-    0% {
-        opacity: 0;
-        transform: translateY(-50%) scale(0.75);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(-50%) scale(1);
-    }
 }
 
 /* Hearts */
