@@ -6,7 +6,7 @@
 <title>Valentine 💖</title>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&display=swap');
 
 * {
     box-sizing: border-box;
@@ -32,36 +32,22 @@ body {
     text-align: center;
     padding: 25px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    z-index: 2;
 }
 
-h1 {
-    color: #e60073;
-}
-
-#greeting {
-    min-height: 40px;
-}
-
-.cursor {
-    display: inline-block;
-    animation: blink 1s infinite;
-}
-
-@keyframes blink {
-    50% { opacity: 0; }
-}
+h1 { color: #e60073; }
 
 #typingText {
-    margin-top: 15px;
+    margin-top: 20px;
     font-size: 20px;
     line-height: 1.5;
     color: #4a0033;
     font-family: 'Playfair Display', serif;
-    min-height: 60px;
+    min-height: 80px;
 }
 
-/* ✅ FIXED BUTTON LAYOUT */
+.cursor { animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
 .buttons {
     margin-top: 40px;
     display: flex;
@@ -69,7 +55,6 @@ h1 {
     gap: 20px;
 }
 
-/* buttons no longer absolute */
 button {
     padding: 12px 25px;
     font-size: 18px;
@@ -77,18 +62,11 @@ button {
     border-radius: 30px;
     cursor: pointer;
     opacity: 0;
-    transition: opacity 0.5s ease;
+    transition: opacity 0.5s;
 }
 
-#yesBtn {
-    background: #ff4d88;
-    color: white;
-}
-
-#noBtn {
-    background: #ddd;
-    color: black;
-}
+#yesBtn { background: #ff4d88; color: white; }
+#noBtn  { background: #ddd; color: black; }
 
 /* RESULT SCREEN */
 #result {
@@ -100,10 +78,9 @@ button {
     z-index: 10;
 }
 
-#result.active {
-    display: flex;
-}
+#result.active { display: flex; }
 
+/* ✅ ORIGINAL IMAGE LOGIC (RESTORED) */
 #result::before {
     content: "";
     position: absolute;
@@ -117,6 +94,7 @@ button {
     z-index: -1;
 }
 
+/* Desktop / large screens */
 @media (min-width: 768px) {
     #result::before {
         background-size: contain;
@@ -130,24 +108,16 @@ button {
     border-radius: 20px;
     border: 3px solid black;
     text-align: center;
-    animation: fadeIn 1.5s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
 }
 
 .heart {
     position: absolute;
     font-size: 20px;
     animation: floatUp 4s linear infinite;
-    opacity: 0.7;
 }
-
 @keyframes floatUp {
     from { transform: translateY(100vh); }
-    to { transform: translateY(-10vh); }
+    to   { transform: translateY(-10vh); }
 }
 
 .confetti {
@@ -156,10 +126,9 @@ button {
     height: 8px;
     animation: fall 3s linear infinite;
 }
-
 @keyframes fall {
     from { transform: translateY(-10vh) rotate(0); }
-    to { transform: translateY(110vh) rotate(360deg); }
+    to   { transform: translateY(110vh) rotate(360deg); }
 }
 
 canvas {
@@ -173,10 +142,10 @@ canvas {
 <body>
 
 <div class="container" id="questionBox">
-    <h1 id="greeting">Hey Pavii 💕</h1>
+    <h1 id="greeting">Tap to start 💕</h1>
     <div id="typingText"></div>
 
-    <div class="buttons" id="btnArea">
+    <div class="buttons">
         <button id="noBtn">No 🙃</button>
         <button id="yesBtn">Yes ❤️</button>
     </div>
@@ -184,6 +153,7 @@ canvas {
 
 <div id="result">
     <div class="result-box">
+        <!-- ✅ TEXT UPDATED -->
         <h1>Thank you for choosing me as your Valentine 💖</h1>
         <h2>You’ve unlocked unlimited love 💕</h2>
     </div>
@@ -191,39 +161,48 @@ canvas {
 
 <canvas id="fireworks"></canvas>
 
-<audio id="music" loop>
-    <source src="music.mp3" type="audio/mpeg">
-</audio>
-
-<audio id="funnySound">
-    <source src="funny.mp3" type="audio/mpeg">
-</audio>
+<!-- AUDIO -->
+<audio id="typingSound" src="typing.mp3" loop></audio>
+<audio id="music" src="music.mp3" loop></audio>
+<audio id="funnySound" src="funny.mp3"></audio>
 
 <script>
 const greetingText = "Hey Pavii 💕";
-const mainText = "Will you be my Valentine and stay with me for the rest of my life💖? ";
+const mainText = "Will you be my Valentine and stay with me for the rest of my life 💖?";
 
 const greetingEl = document.getElementById("greeting");
 const typingTextEl = document.getElementById("typingText");
-
-const noBtn = document.getElementById("noBtn");
 const yesBtn = document.getElementById("yesBtn");
+const noBtn = document.getElementById("noBtn");
 const result = document.getElementById("result");
+
+const typingSound = document.getElementById("typingSound");
 const music = document.getElementById("music");
 const funnySound = document.getElementById("funnySound");
 
+typingSound.volume = 0.35;
 music.volume = 0.25;
 
-let greetingIndex = 0;
-let mainIndex = 0;
+let g = 0, m = 0, started = false;
+
+/* Start typing sound instantly */
+function startTypingSound() {
+    typingSound.currentTime = 0;
+    typingSound.play();
+}
+
+/* Stop typing sound before buttons */
+function stopTypingSound() {
+    typingSound.pause();
+    typingSound.currentTime = 0;
+}
 
 /* Typing greeting */
 function typeGreeting() {
-    if (greetingIndex < greetingText.length) {
+    if (g < greetingText.length) {
         greetingEl.innerHTML =
-            greetingText.substring(0, greetingIndex + 1) +
-            '<span class="cursor">|</span>';
-        greetingIndex++;
+            greetingText.slice(0, g + 1) + '<span class="cursor">|</span>';
+        g++;
         setTimeout(typeGreeting, 100);
     } else {
         greetingEl.innerHTML = greetingText;
@@ -233,31 +212,30 @@ function typeGreeting() {
 
 /* Typing main text */
 function typeMainText() {
-    if (mainIndex < mainText.length) {
+    if (m < mainText.length) {
         typingTextEl.innerHTML =
-            mainText.substring(0, mainIndex + 1) +
-            '<span class="cursor">|</span>';
-        mainIndex++;
+            mainText.slice(0, m + 1) + '<span class="cursor">|</span>';
+        m++;
         setTimeout(typeMainText, 70);
     } else {
         typingTextEl.innerHTML = mainText;
+        stopTypingSound();
         yesBtn.style.opacity = 1;
         noBtn.style.opacity = 1;
     }
 }
 
-/* No button move (small dodge effect) */
+/* No button dodge */
 function moveNoButton() {
     noBtn.style.transform =
         `translate(${Math.random()*80 - 40}px, ${Math.random()*80 - 40}px)`;
     funnySound.currentTime = 0;
     funnySound.play();
 }
-
 noBtn.addEventListener("click", moveNoButton);
 noBtn.addEventListener("touchstart", moveNoButton);
 
-/* Yes button */
+/* YES — ORIGINAL LOGIC */
 yesBtn.addEventListener("click", () => {
     document.getElementById("questionBox").style.display = "none";
     result.classList.add("active");
@@ -270,12 +248,12 @@ yesBtn.addEventListener("click", () => {
 /* Hearts */
 function startHearts() {
     setInterval(() => {
-        const heart = document.createElement("div");
-        heart.className = "heart";
-        heart.innerHTML = "❤️";
-        heart.style.left = Math.random() * 100 + "vw";
-        document.body.appendChild(heart);
-        setTimeout(() => heart.remove(), 4000);
+        const h = document.createElement("div");
+        h.className = "heart";
+        h.innerHTML = "❤️";
+        h.style.left = Math.random() * 100 + "vw";
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), 4000);
     }, 300);
 }
 
@@ -294,8 +272,8 @@ function startConfetti() {
 function startFireworks() {
     const canvas = document.getElementById("fireworks");
     const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
 
     setInterval(() => {
         ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -308,8 +286,14 @@ function startFireworks() {
     }, 500);
 }
 
-/* Start typing */
-typeGreeting();
+/* Tap to start */
+document.body.addEventListener("click", () => {
+    if (started) return;
+    started = true;
+    startTypingSound();
+    greetingEl.innerHTML = "";
+    typeGreeting();
+}, { once: true });
 </script>
 
 </body>
